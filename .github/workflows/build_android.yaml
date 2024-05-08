@@ -28,7 +28,7 @@ jobs:
           region: oss-cn-shenzhen
           bucket: luodoubdou-audio
           assets: |
-            dist/**:/dist
+            dist/**:/dist2/
 
       # 安装Flutter环境
 #      - name: Install Flutter
