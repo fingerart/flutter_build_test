@@ -50,9 +50,22 @@ jobs:
 #        if: ${{ github.ref_name == 'release' }}
 #        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
 
-      - run: |
+      - name: Upload to oss
+        id: upload-oss
+        run: |
           ossutil cp -f ${{ steps.app.outputs.output_file_path }} "oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab"
-          ossutil sign "oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab" --timeout 31536000
+          ossutil sign "oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab" --timeout 31536000 | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify lark for success
+        if: ${{ success() }}
+        run: |
+          echo "success."
+          echo "${{ steps.upload-oss.outputs.download_url }}"
+
+      - name: Notify lark for failure
+        if: ${{ failure() }}
+        run: |
+          echo "failure."
 
 #  build-ios:
 #    runs-on: macos-latest
