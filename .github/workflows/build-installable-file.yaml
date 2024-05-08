@@ -47,7 +47,7 @@ jobs:
           region: oss-ap-southeast-1
           bucket: artifact-release
           assets: |
-            build/app/outputs/bundle/release/${{ steps.app.outputs.output_file_name }}.aab:/${{ setps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab
+            build/app/outputs/bundle/release/${{ steps.app.outputs.output_file_name }}.aab:/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab
 
 #  build-ios:
 #    runs-on: macos-latest
