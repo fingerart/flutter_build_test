@@ -24,7 +24,7 @@ jobs:
           accessKeyId: ${{ secrets.ACCESS_KEY_ID }}
           accessKeySecret: ${{ secrets.OSS_AK_SECRET }}
           bucket: luodoubdou-audio
-          endpoint: oss-cn-hongkong.aliyuncs.com
+          endpoint: https://oss-cn-shenzhen.aliyuncs.com
           folder: 'dist'
 
       # 安装Flutter环境
