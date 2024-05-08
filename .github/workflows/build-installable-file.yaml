@@ -20,7 +20,7 @@ jobs:
       - name: Setup ossutil
         uses: manyuanrong/setup-ossutil@v3.0
         with:
-          endpoint: "oss.aliyuncs.com"
+          endpoint: "https://oss-ap-southeast-1.aliyuncs.com"
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
 
