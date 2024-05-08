@@ -12,16 +12,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 安装Flutter环境
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2.16.0
-        with:
-          channel: 'stable'
-          cache: true
+      - name: Fake build
+        run: |
+          mkdir -p build/app/outputs/bundle/debug/
+          echo "Hello" > build/app/outputs/bundle/debug/app-debug.aab
 
-      # 安装依赖
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Setup ossutil
+        uses: manyuanrong/setup-ossutil@v3.0
+        with:
+          endpoint: "oss.aliyuncs.com"
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+
+#      # 安装Flutter环境
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: 'stable'
+#          cache: true
+#
+#      # 安装依赖
+#      - name: Install dependencies
+#        run: flutter pub get
 
       # 准备环境
       - name : Setup Environment
@@ -29,25 +41,18 @@ jobs:
         run: .github/scripts/setup-runtime-environment.sh
         shell: bash
 
-      # 为不同环境作构建
-      - name: Build apk for test environment
-        if: ${{ github.ref_name == 'test' }}
-        run: flutter build appbundle -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+#      # 为不同环境作构建
+#      - name: Build apk for test environment
+#        if: ${{ github.ref_name == 'test' }}
+#        run: flutter build appbundle -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+#
+#      - name: Build apk for release environment
+#        if: ${{ github.ref_name == 'release' }}
+#        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
 
-      - name: Build apk for release environment
-        if: ${{ github.ref_name == 'release' }}
-        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
-
-      # 上传到OSS
-      - name: Upload to OSS
-        uses: tvrcgo/oss-action@v1.0.0
-        with:
-          key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
-          key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-          region: oss-ap-southeast-1
-          bucket: artifact-release
-          assets: |
-            ${{ steps.app.outputs.output_file_path }}:/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab
+      - run: |
+          ossutil cp -f ${{ steps.app.outputs.output_file_path }} oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab
+          ossutil sign oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab --timeout 31536000
 
 #  build-ios:
 #    runs-on: macos-latest
