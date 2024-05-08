@@ -23,13 +23,13 @@ jobs:
         with:
           args: --acl public-read --follow-symlinks --delete
         env:
-          AWS_S3_BUCKET: 'artifact-release'
+          AWS_S3_BUCKET: 'luodoubdou-audio'
           AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.OSS_AK_SECRET }}
           AWS_S3_ENDPOINT: 'https://aliyuncs.com'
           AWS_REGION: 'oss-cn-hongkong'
           SOURCE_DIR: 'dist'
-          DEST_DIR: 'Spellai/iOS/v1.0.0'
+#          DEST_DIR: 'Spellai/iOS/v1.0.0'
 
       # 安装Flutter环境
 #      - name: Install Flutter
