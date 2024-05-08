@@ -17,6 +17,7 @@ jobs:
       - run: |
           mkdir -p dist
           echo "Hello" > dist/hello.txt
+          ls -R dist
 
       - uses: jakejarvis/s3-sync-action@master
         with:
@@ -25,7 +26,7 @@ jobs:
           AWS_S3_BUCKET: 'artifact-release'
           AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.OSS_AK_SECRET }}
-          AWS_S3_ENDPOINT: 'https://oss-cn-hongkong.aliyuncs.com'
+          AWS_S3_ENDPOINT: 'aliyuncs.com'
           AWS_REGION: 'oss-cn-hongkong'
           SOURCE_DIR: 'dist'
           DEST_DIR: 'Spellai/iOS/v1.0.0'
