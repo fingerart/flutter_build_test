@@ -19,18 +19,16 @@ jobs:
           echo "Hello" > dist/hello.txt
           ls -R dist
 
-      - name: Upload to S3
-        uses: bxb100/action-upload@main
+      - name: Upload to oss
+        id: upload_to_oss
+        uses: tvrcgo/oss-action@master
         with:
-          provider: s3
-          provider_options: |
-            root=/cs
-            bucket=luodoubdou-audio
-            region=auto
-            endpoint=https://oss-cn-shenzhen.aliyuncs.com
-            access_key_id=${{secrets.ACCESS_KEY_ID}}
-            secret_access_key=${{secrets.OSS_AK_SECRET}}
-          include: 'dist/**'
+          key-id: ${{ secrets.ACCESS_KEY_ID }}
+          key-secret: ${{ secrets.OSS_AK_SECRET }}
+          region: oss-cn-shenzhen
+          bucket: luodoubdou-audio
+          assets: |
+            dist/**:/dist
 
       # 安装Flutter环境
 #      - name: Install Flutter
