@@ -51,8 +51,8 @@ jobs:
 #        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
 
       - run: |
-          ossutil cp -f ${{ steps.app.outputs.output_file_path }} oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab
-          ossutil sign oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab --timeout 31536000
+          ossutil cp -f ${{ steps.app.outputs.output_file_path }} "oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab"
+          ossutil sign "oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.aab" --timeout 31536000
 
 #  build-ios:
 #    runs-on: macos-latest
