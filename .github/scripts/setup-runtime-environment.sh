@@ -13,9 +13,9 @@ project_name="${REPOSITORY_ALIAS:-$repository_name}"
 # 创建输出值
 if [ "$GITHUB_REF_NAME" == 'test' ]; then
   debug_flag='-debug'
-  output_file_path="build/app/outputs/bundle/debug/app-debug"
+  output_file_path="build/app/outputs/apk/debug/app-debug.apk"
 else
-  output_file_path="build/app/outputs/bundle/release/app-release"
+  output_file_path="build/app/outputs/bundle/release/app-release.aab"
 fi
 
 # macOS平台覆盖output_file_path

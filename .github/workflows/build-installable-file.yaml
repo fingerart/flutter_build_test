@@ -62,7 +62,7 @@ jobs:
         run: |
           suffix="${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.$suffix"
-          ossutil cp -f "${{ steps.app.outputs.output_file_path }}.$suffix" "$oss_path"
+          ossutil cp -f "${{ steps.app.outputs.output_file_path }}" "$oss_path"
           ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
 
       - name: Notify lark for success
