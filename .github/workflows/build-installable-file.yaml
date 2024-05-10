@@ -4,6 +4,9 @@ on:
   push:
     branches: [ test, release ]
 
+env:
+  OSS_HOST: artifact-release.riveroll.top
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -63,7 +66,8 @@ jobs:
           suffix="${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.$suffix"
           ossutil cp -f "${{ steps.app.outputs.output_file_path }}" "$oss_path"
-          ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          url=$(ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
+          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
 
       - name: Notify lark for success
         run: .github/scripts/notify-lark.sh
@@ -118,7 +122,8 @@ jobs:
         run: |
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.ipa"
           ossutil cp -f ${{ steps.app.outputs.output_file_path }} "$oss_path"
-          ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          url=$(ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
+          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Make install manifest file
