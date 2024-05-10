@@ -1,7 +1,8 @@
 name: Build installation files for Android and iOS
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ test, release ]
 
 jobs:
   build-android:
