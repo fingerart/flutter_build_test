@@ -13,19 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-#      - name: Fake build
-#        run: |
-#          mkdir -p build/app/outputs/bundle/debug/
-#          echo "Hello" > build/app/outputs/bundle/debug/app-debug.aab
-#          ls -R build/app/outputs
-
-#      - uses: jerray/setup-aliyun-cli-action@v1.0.2
-#        with:
-#          aliyun-cli-version: '3.0.165'
-#          mode: AK
-#          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
-#          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-#          region: "oss-ap-southeast-1"
+      - name: Fake build
+        run: |
+          mkdir -p build/app/outputs/apk/debug/
+          echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
+          ls -R build/app/outputs
 
       - name: Setup ossutil
         uses: manyuanrong/setup-ossutil@v3.0
@@ -34,16 +26,16 @@ jobs:
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
 
-      # 安装Flutter环境
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2.16.0
-        with:
-          channel: 'stable'
-          cache: true
-
-      # 安装依赖
-      - name: Install dependencies
-        run: flutter pub get
+#      # 安装Flutter环境
+#      - name: Setup Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: 'stable'
+#          cache: true
+#
+#      # 安装依赖
+#      - name: Install dependencies
+#        run: flutter pub get
 
       # 准备环境
       - name : Setup Environment
@@ -52,19 +44,19 @@ jobs:
         shell: bash
 
       # 为不同环境作构建
-      - name: Build apk for test environment
-        if: ${{ github.ref_name == 'test' }}
-        run: flutter build apk -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
-
-      - name: Build apk for release environment
-        if: ${{ github.ref_name == 'release' }}
-        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+#      - name: Build apk for test environment
+#        if: ${{ github.ref_name == 'test' }}
+#        run: flutter build apk -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+#
+#      - name: Build apk for release environment
+#        if: ${{ github.ref_name == 'release' }}
+#        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
 
       - name: Upload to oss
         id: upload-oss
         run: |
-          suffix="${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
-          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.$suffix"
+          dist_file_name="${{ steps.app.outputs.dist_file_name }}.${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
+          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
           ossutil cp -f "${{ steps.app.outputs.output_file_path }}" "$oss_path"
           url=$(ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
           echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
@@ -88,25 +80,32 @@ jobs:
 
   build-ios:
     runs-on: macos-latest
-#    if: ${{ github.ref_name == 'test' }}
     if: false
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup ossutil
-        uses: manyuanrong/setup-ossutil@v3.0
+      - uses: jerray/setup-aliyun-cli-action@v1.0.2
         with:
-          endpoint: "https://oss-ap-southeast-1.aliyuncs.com"
+          aliyun-cli-version: '3.0.204'
+          mode: AK
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          region: "ap-southeast-1"
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2.16.0
-        with:
-          channel: 'stable'
+#      - name: Setup ossutil
+#        uses: manyuanrong/setup-ossutil@v3.0
+#        with:
+#          endpoint: "https://oss-ap-southeast-1.aliyuncs.com"
+#          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+#          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
 
-      - name: Install dependencies
-        run: flutter pub get
+#      - name: Install Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: 'stable'
+#
+#      - name: Install dependencies
+#        run: flutter pub get
 
       # 准备环境
       - name : Setup Environment
@@ -114,15 +113,25 @@ jobs:
         run: .github/scripts/setup-runtime-environment.sh
         shell: bash
 
-      - name: Build iOS ipa
-        run: flutter build ipa -t lib/main_debug.dart --profile --export-method=development --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating
+      - name: Fake build
+        run: |
+          mkdir -p build/ios/ipa/
+          echo "Hello" > build/ios/ipa/automation_build.ipa
+          ls -R build/ios/ipa/
+
+#      - name: Build iOS ipa
+#        run: flutter build ipa -t lib/main_debug.dart --profile --export-method=development --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating
 
       - name: Upload to oss
         id: upload-oss
         run: |
-          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/${{ steps.app.outputs.dist_file_name }}.ipa"
-          ossutil cp -f ${{ steps.app.outputs.output_file_path }} "$oss_path"
-          url=$(ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
+          dist_file_name="${{ steps.app.outputs.dist_file_name }}.ipa"
+          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
+          echo "oss_path: $oss_path"
+          echo "${{ steps.app.outputs.output_file_path }}"
+          aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
+          echo "upload ok"
+          url=$(aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
           echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
@@ -135,8 +144,8 @@ jobs:
         id: upload-install-manifest
         run: |
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/manifest-${{ env.GITHUB_SHA_SHORT }}.plist"
-          ossutil cp -f ${{ steps.make-install-manifest.outputs.manifest_path }} "$oss_path"
-          ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          aliyun oss cp ${{ steps.make-install-manifest.outputs.manifest_path }} "$oss_path" -f
+          aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Genarate manifest qrcode
