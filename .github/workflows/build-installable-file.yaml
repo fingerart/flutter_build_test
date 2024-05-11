@@ -5,7 +5,7 @@ on:
     branches: [ test, release ]
 
 env:
-  OSS_HOST: artifact-release.riveroll.top
+  OSS_BUCKET_CNAME: artifact-release.riveroll.top
 
 jobs:
   build-android:
@@ -19,12 +19,14 @@ jobs:
           echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
           ls -R build/app/outputs
 
-      - name: Setup ossutil
-        uses: manyuanrong/setup-ossutil@v3.0
+      - name: Setup aliyun-cli
+        uses: jerray/setup-aliyun-cli-action@v1.0.2
         with:
-          endpoint: "https://oss-ap-southeast-1.aliyuncs.com"
+          aliyun-cli-version: '3.0.204'
+          mode: AK
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          region: "ap-southeast-1"
 
 #      # 安装Flutter环境
 #      - name: Setup Flutter
@@ -57,47 +59,47 @@ jobs:
         run: |
           dist_file_name="${{ steps.app.outputs.dist_file_name }}.${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
-          ossutil cp -f "${{ steps.app.outputs.output_file_path }}" "$oss_path"
-          url=$(ossutil sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
-          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
+          url=$(aliyun oss sign "$oss_path" --timeout 31536000 --query-param "response-content-disposition:attachment;filename=$dist_file_name" | grep -oE 'http[s]?:\/\/[^ ]+')
+          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
 
       - name: Notify lark for success
-        run: .github/scripts/notify-lark.sh
+        run: .github/scripts/notify-lark.sh -s success
         shell: bash
         env:
+          PLATFORM: Android
           LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
           LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
           LARK_CHATROOM_ID: ${{ secrets.LARK_CHATROOM_ID }}
           DOWNLOAD_URL: ${{ steps.upload-oss.outputs.download_url }}
           VERSION: ${{ steps.app.outputs.version_name }}
           PRODUCT_IMG_URL: ${{ vars.PRODUCT_IMG_KEY }}
-          PLATFORM: Android
 
       - name: Notify lark for failure
         if: ${{ failure() }}
-        run: |
-          echo "failure."
+        run: .github/scripts/notify-lark.sh -s failure
+        shell: bash
+        env:
+          PLATFORM: Android
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
+          LARK_CHATROOM_ID: ${{ secrets.LARK_CHATROOM_ID }}
+          VERSION: ${{ steps.app.outputs.version_name }}
+          PRODUCT_IMG_URL: ${{ vars.PRODUCT_IMG_KEY }}
 
   build-ios:
     runs-on: macos-latest
-    if: false
     steps:
       - uses: actions/checkout@v4
 
-      - uses: jerray/setup-aliyun-cli-action@v1.0.2
+      - name: Setup aliyun-cli
+        uses: jerray/setup-aliyun-cli-action@v1.0.2
         with:
           aliyun-cli-version: '3.0.204'
           mode: AK
           access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
-
-#      - name: Setup ossutil
-#        uses: manyuanrong/setup-ossutil@v3.0
-#        with:
-#          endpoint: "https://oss-ap-southeast-1.aliyuncs.com"
-#          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
-#          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
 
 #      - name: Install Flutter
 #        uses: subosito/flutter-action@v2.16.0
@@ -132,7 +134,7 @@ jobs:
           aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
           echo "upload ok"
           url=$(aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
-          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_HOST }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Make install manifest file
@@ -155,14 +157,26 @@ jobs:
           text: itms-services://?action=download-manifest&url=${{ steps.upload-install-manifest.outputs.download_url }}
 
       - name: Notify lark for success
-        run: .github/scripts/notify-lark.sh
+        run: .github/scripts/notify-lark.sh -s success
         shell: bash
         env:
+          PLATFORM: iOS
           LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
           LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
           LARK_CHATROOM_ID: ${{ secrets.LARK_CHATROOM_ID }}
           DOWNLOAD_URL: ${{ steps.upload-oss.outputs.download_url }}
           VERSION: ${{ steps.app.outputs.version_name }}
           PRODUCT_IMG_URL: ${{ vars.PRODUCT_IMG_KEY }}
-          PLATFORM: iOS
           QRCODE_IMG_PATH: ${{ steps.manifest-qrcode.outputs.QR_CODE_PNG_PATH }}
+
+      - name: Notify lark for failure
+        if: ${{ failure() }}
+        run: .github/scripts/notify-lark.sh -s failure
+        shell: bash
+        env:
+          PLATFORM: iOS
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
+          LARK_CHATROOM_ID: ${{ secrets.LARK_CHATROOM_ID }}
+          VERSION: ${{ steps.app.outputs.version_name }}
+          PRODUCT_IMG_URL: ${{ vars.PRODUCT_IMG_KEY }}

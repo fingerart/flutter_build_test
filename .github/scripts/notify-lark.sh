@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+while getopts 's:' opt; do
+  case $opt in
+  s)
+    state=$OPTARG
+    ;;
+  ?)
+    echo "未知参数"
+    exit 1
+    ;;
+  esac
+done
+
 env="$GITHUB_REF_NAME"
 project_name="$PROJECT_NAME"
 commit_hash="$GITHUB_SHA_SHORT"
@@ -38,29 +50,52 @@ if [ -n "$qrcode_img_path" ]; then
   qrcode_img_url=$(echo "$resp_upload_img" | jq -r '.data.image_key')
 fi
 
-# 发送通知
-curl -X "POST" "https://open.feishu.cn/open-apis/bot/v2/hook/$lark_chatroom_id" \
-  -H 'Content-Type: text/plain; charset=utf-8' \
-  -d $'{
-  "msg_type": "interactive",
-  "card": {
-    "type": "template",
-    "data": {
-      "template_id": "ctp_AAkOYUy054dH",
-      "template_variable": {
-        "env": "'$env'",
-        "version": "'$version'",
-        "project_name": "'$project_name'",
-        "platform": "'$platform'",
-        "commit_hash": "'$commit_hash'",
-        "download_url": "'$download_url'",
-        "qrcode_img_url": "'$qrcode_img_url'",
-        "product_img_url": "'$product_img_url'",
-        "platform_img_url": "'$platform_img_url'",
-        "remark": ""
+if [ "$state" == "success" ]; then
+  # 发送成功通知
+  curl -X "POST" "https://open.feishu.cn/open-apis/bot/v2/hook/$lark_chatroom_id" \
+    -H 'Content-Type: text/plain; charset=utf-8' \
+    -d $'{
+    "msg_type": "interactive",
+    "card": {
+      "type": "template",
+      "data": {
+        "template_id": "ctp_AAkOYUy054dH",
+        "template_variable": {
+          "env": "'$env'",
+          "version": "'$version'",
+          "project_name": "'$project_name'",
+          "platform": "'$platform'",
+          "commit_hash": "'$commit_hash'",
+          "download_url": "'$download_url'",
+          "qrcode_img_url": "'$qrcode_img_url'",
+          "product_img_url": "'$product_img_url'",
+          "platform_img_url": "'$platform_img_url'",
+          "remark": ""
+        }
       }
     }
-  }
-}'
-
-exit 0
+  }'
+else
+  # 发送失败通知
+  curl -X "POST" "https://open.feishu.cn/open-apis/bot/v2/hook/$lark_chatroom_id" \
+    -H 'Content-Type: text/plain; charset=utf-8' \
+    -d $'{
+    "msg_type": "interactive",
+    "card": {
+      "type": "template",
+      "data": {
+        "template_id": "ctp_AAk5c1XkbFjl",
+        "template_variable": {
+          "env": "'$env'",
+          "version": "'$version'",
+          "project_name": "'$project_name'",
+          "platform": "'$platform'",
+          "commit_hash": "'$commit_hash'",
+          "product_img_url": "'$product_img_url'",
+          "platform_img_url": "'$platform_img_url'",
+          "logs_url": "https://github.com/logs",
+        }
+      }
+    }
+  }'
+fi
