@@ -6,9 +6,9 @@ on:
 
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
-  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-  FLUTTER_XCODE_PROVISIONING_PROFILE: 9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8
-  FLUTTER_XCODE_CODE_SIGN_IDENTITY: 'Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)'
+#  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
+#  FLUTTER_XCODE_PROVISIONING_PROFILE: 9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8
+#  FLUTTER_XCODE_CODE_SIGN_IDENTITY: 'Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)'
 
 jobs:
   build-android:
@@ -102,7 +102,7 @@ jobs:
           # 准备描述文件
           profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
           mkdir -p "$profile_path"
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/${{env.FLUTTER_XCODE_PROVISIONING_PROFILE}}.mobileprovision"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8.mobileprovision"
           
           # 准备证书
           keychain_path="${{ runner.temp }}/app-signing.keychain"
