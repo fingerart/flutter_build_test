@@ -119,8 +119,10 @@ jobs:
           security import "$distribution_p12_path" -A -t cert -f pkcs12 -k "$keychain_path" -P "${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}"
           security list-keychains -d user -s "$keychain_path"
           
-          ls -R "$profile_path"
-          ls -R "${{ runner.temp }}"
+          echo 'Provisioning Profiles:'
+          ls -al "$profile_path"
+          echo 'runner.temp:'
+          ls -al "${{ runner.temp }}"
 
       - name: Setup aliyun-cli
         uses: jerray/setup-aliyun-cli-action@v1.0.2
