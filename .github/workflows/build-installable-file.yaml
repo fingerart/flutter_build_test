@@ -7,7 +7,7 @@ on:
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
   FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-  FLUTTER_XCODE_PROVISIONING_PROFILE: MOVA-Distribution-ADHOC
+  FLUTTER_XCODE_PROVISIONING_PROFILE: 9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8
   FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)"
 
 jobs:
@@ -155,7 +155,7 @@ jobs:
 #          ls -R build/ios/ipa/
 
       - name: Build iOS ipa
-        run: flutter build ipa -t lib/main_debug.dart --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload ipa to oss
         id: upload-ipa
