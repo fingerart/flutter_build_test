@@ -111,7 +111,7 @@ jobs:
           
           # 创建keychain
           security create-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
-#          security default-keychain -s "$keychain_path"
+          # security default-keychain -s "$keychain_path"
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
           
