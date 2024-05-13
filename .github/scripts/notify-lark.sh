@@ -93,7 +93,7 @@ else
           "commit_hash": "'$commit_hash'",
           "product_img_url": "'$product_img_url'",
           "platform_img_url": "'$platform_img_url'",
-          "logs_url": "https://github.com/logs",
+          "logs_url": "https://github.com/logs"
         }
       }
     }

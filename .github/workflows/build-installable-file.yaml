@@ -89,6 +89,7 @@ jobs:
 
   build-ios:
     runs-on: macos-latest
+    if: ${{ github.ref_name == 'test' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -124,37 +125,36 @@ jobs:
 #      - name: Build iOS ipa
 #        run: flutter build ipa -t lib/main_debug.dart --profile --export-method=development --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating
 
-      - name: Upload to oss
-        id: upload-oss
+      - name: Upload ipa to oss
+        id: upload-ipa
         run: |
           dist_file_name="${{ steps.app.outputs.dist_file_name }}.ipa"
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
-          echo "oss_path: $oss_path"
-          echo "${{ steps.app.outputs.output_file_path }}"
           aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
-          echo "upload ok"
           url=$(aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
           echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Make install manifest file
-        id: make-install-manifest
-        run: .github/scripts/make-ios-install-manifest.sh -u "${{ steps.upload-oss.outputs.download_url }}" -n ${{ env.PROJECT_NAME }} -o "./dist" -b "com.ai.video.mova.ios"
+        id: make-manifest
+        run: .github/scripts/make-ios-install-manifest.sh -u "${{ steps.upload-ipa.outputs.download_url }}" -n ${{ env.PROJECT_NAME }} -o "./dist" -b "com.ai.video.mova.ios"
         shell: bash
 
       - name: Upload install manifest file
-        id: upload-install-manifest
+        id: upload-manifest
         run: |
-          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/manifest-${{ env.GITHUB_SHA_SHORT }}.plist"
-          aliyun oss cp ${{ steps.make-install-manifest.outputs.manifest_path }} "$oss_path" -f
-          aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          dist_file_path="${{ steps.app.outputs.dist_dir }}/manifest-${{ env.GITHUB_SHA_SHORT }}.plist"
+          oss_path="oss://${{ vars.OSS_BUCKET }}/$dist_file_path"
+          aliyun oss cp ${{ steps.make-manifest.outputs.manifest_path }} "$oss_path" -f
+          aliyun oss set-acl "$oss_path" public-read
+          echo "https://${{env.OSS_BUCKET_CNAME}}/$dist_file_path" | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Genarate manifest qrcode
         uses: iChengbo/generate-qrcode@v0.3.0
         id: manifest-qrcode
         with:
-          text: itms-services://?action=download-manifest&url=${{ steps.upload-install-manifest.outputs.download_url }}
+          text: itms-services://?action=download-manifest&url=${{ steps.upload-manifest.outputs.download_url }}
 
       - name: Notify lark for success
         run: .github/scripts/notify-lark.sh -s success
@@ -164,7 +164,7 @@ jobs:
           LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
           LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
           LARK_CHATROOM_ID: ${{ secrets.LARK_CHATROOM_ID }}
-          DOWNLOAD_URL: ${{ steps.upload-oss.outputs.download_url }}
+          DOWNLOAD_URL: ${{ steps.upload-ipa.outputs.download_url }}
           VERSION: ${{ steps.app.outputs.version_name }}
           PRODUCT_IMG_URL: ${{ vars.PRODUCT_IMG_KEY }}
           QRCODE_IMG_PATH: ${{ steps.manifest-qrcode.outputs.QR_CODE_PNG_PATH }}

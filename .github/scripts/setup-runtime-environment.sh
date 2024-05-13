@@ -26,7 +26,7 @@ fi
 
 version_name="$(yq '.version' pubspec.yaml | cut -d'+' -f1)"
 version_code="$(yq '.version' pubspec.yaml | cut -d'+' -f2)"
-dist_file_name="$project_name-v$version_name+$version_code$debug_flag($github_sha_short)"
+dist_file_name="$project_name-v$version_name-$version_code$debug_flag($github_sha_short)"
 dist_dir="$project_name/$GITHUB_REF_NAME/v$version_name"
 
 {
