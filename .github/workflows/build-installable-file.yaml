@@ -151,7 +151,7 @@ jobs:
 #          ls -R build/ios/ipa/
 
       - name: Build iOS ipa
-        run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa -t lib/main_debug.dart --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload ipa to oss
         id: upload-ipa
