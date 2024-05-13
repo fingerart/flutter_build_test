@@ -9,7 +9,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.ai.video.mova.ios</key>
-        <string>MOVA-Distribution-ADHOC</string>
+        <string>9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8</string>
     </dict>
     <key>signingCertificate</key>
     <string>Apple Distribution</string>
