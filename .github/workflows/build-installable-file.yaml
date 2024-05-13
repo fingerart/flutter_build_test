@@ -10,6 +10,7 @@ env:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
 
@@ -93,6 +94,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install the Apple certificate and provisioning profile
+        run: |
+          # 准备描述文件
+          profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
+          mkdir -p "$profile_path"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/ad-hoc.mobileprovision"
+          
+          # 准备证书
+          keychain_path="${{ runner.temp }}/app-signing.keychain"
+          distribution_p12_path="${{ runner.temp }}/distribution.p12"
+          echo "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
+          
+          # 创建keychain
+          security create-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
+          security default-keychain -s "$keychain_path"
+          security unlock-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
+          
+          # 导入证书
+          security import "$distribution_p12_path" -A -t cert -f pkcs12 -k "$keychain_path" -P "${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}"
+          security list-keychains -s "$keychain_path"
+          
+          ls -R "$profile_path"
+          ls -R "${{ runner.temp }}"
+
       - name: Setup aliyun-cli
         uses: jerray/setup-aliyun-cli-action@v1.0.2
         with:
@@ -102,28 +127,30 @@ jobs:
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
 
-#      - name: Install Flutter
-#        uses: subosito/flutter-action@v2.16.0
-#        with:
-#          channel: 'stable'
-#
-#      - name: Install dependencies
-#        run: flutter pub get
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Pod repo update
+        run: pod repo update
 
       # 准备环境
       - name : Setup Environment
         id: app
         run: .github/scripts/setup-runtime-environment.sh
-        shell: bash
 
-      - name: Fake build
-        run: |
-          mkdir -p build/ios/ipa/
-          echo "Hello" > build/ios/ipa/automation_build.ipa
-          ls -R build/ios/ipa/
+#      - name: Fake build
+#        run: |
+#          mkdir -p build/ios/ipa/
+#          echo "Hello" > build/ios/ipa/automation_build.ipa
+#          ls -R build/ios/ipa/
 
-#      - name: Build iOS ipa
-#        run: flutter build ipa -t lib/main_debug.dart --profile --export-method=development --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating
+      - name: Build iOS ipa
+        run: flutter build ipa -t lib/main_debug.dart --profile --export-method=ad-hoc --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating
 
       - name: Upload ipa to oss
         id: upload-ipa
@@ -133,12 +160,10 @@ jobs:
           aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
           url=$(aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
           echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
-        shell: bash
 
       - name: Make install manifest file
         id: make-manifest
         run: .github/scripts/make-ios-install-manifest.sh -u "${{ steps.upload-ipa.outputs.download_url }}" -n ${{ env.PROJECT_NAME }} -o "./dist" -b "com.ai.video.mova.ios"
-        shell: bash
 
       - name: Upload install manifest file
         id: upload-manifest
@@ -148,7 +173,6 @@ jobs:
           aliyun oss cp ${{ steps.make-manifest.outputs.manifest_path }} "$oss_path" -f
           aliyun oss set-acl "$oss_path" public-read
           echo "https://${{env.OSS_BUCKET_CNAME}}/$dist_file_path" | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
-        shell: bash
 
       - name: Genarate manifest qrcode
         uses: iChengbo/generate-qrcode@v0.3.0
