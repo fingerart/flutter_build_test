@@ -121,19 +121,13 @@ jobs:
           
           echo 'Provisioning Profiles:'
           ls -al "$profile_path"
-          shasum -a 1 ${{ runner.temp }}/distribution.p12
           echo 'runner.temp:'
           ls -al "${{ runner.temp }}"
-          echo $HOME
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: |
-            /Users/runner/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
 
       - name: test
         run: |
-          ls -al ~/Library/MobileDevice/Provisioning\ Profiles/
+          ls -R ~/Library/MobileDevice/
+          ls -R ~
 
 #      - name: Setup aliyun-cli
 #        uses: jerray/setup-aliyun-cli-action@v1.0.2
