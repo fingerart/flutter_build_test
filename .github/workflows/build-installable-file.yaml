@@ -123,11 +123,12 @@ jobs:
           ls -al "$profile_path"
           echo 'runner.temp:'
           ls -al "${{ runner.temp }}"
+          echo $HOME
 
       - uses: actions/upload-artifact@v4
         with:
           path: |
-            "~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
+            ~/Library/MobileDevice/Provisioning\ Profiles/
             ${{ runner.temp }}/distribution.p12
 
 #      - name: Setup aliyun-cli
