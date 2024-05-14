@@ -6,8 +6,8 @@ on:
 
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
-#  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-#  FLUTTER_XCODE_PROVISIONING_PROFILE: 9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8
+  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
+  FLUTTER_XCODE_PROVISIONING_PROFILE: 9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8
 #  FLUTTER_XCODE_CODE_SIGN_IDENTITY: 'Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)'
 
 jobs:
@@ -97,42 +97,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: build ios
-        uses: cedvdb/action-flutter-build-ios@v1
-        with:
-          # always use --export-options-plist=ios/GithubActionsExportOptions.plist
-          build-cmd: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
-          certificate-base64: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}
-          certificate-password: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
-          provisioning-profile-base64: ${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}
-          keychain-password: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
-
-#      - name: Install the Apple certificate and provisioning profile
-#        run: |
-#          # 准备描述文件
-#          profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
-#          mkdir -p "$profile_path"
-#          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8.mobileprovision"
-#
-#          # 准备证书
-#          keychain_path="${{ runner.temp }}/app-signing.keychain"
-#          distribution_p12_path="${{ runner.temp }}/distribution.p12"
-#          echo "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
-#
-#          # 创建keychain
-#          security create-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
-#          # security default-keychain -s "$keychain_path"
-#          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-#          security unlock-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
-#
-#          # 导入证书
-#          security import "$distribution_p12_path" -A -t cert -f pkcs12 -k "$keychain_path" -P "${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}"
-#          security list-keychains -d user -s "$keychain_path"
-#
-#          echo 'Provisioning Profiles:'
-#          ls -al "$profile_path"
-#          echo 'runner.temp:'
-#          ls -al "${{ runner.temp }}"
+      - name: Install the Apple certificate and provisioning profile
+        run: |
+          # 准备描述文件
+          profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
+          mkdir -p "$profile_path"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/9e3e0f20-d232-48a0-958c-8b1a2f3a4ae8.mobileprovision"
+          
+          # 准备证书
+          keychain_path="${{ runner.temp }}/app-signing.keychain"
+          distribution_p12_path="${{ runner.temp }}/distribution.p12"
+          echo "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
+          
+          # 创建keychain
+          security create-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
+          # security default-keychain -s "$keychain_path"
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
+          
+          # 导入证书
+          security import "$distribution_p12_path" -A -t cert -f pkcs12 -k "$keychain_path" -P "${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}"
+          security list-keychains -d user -s "$keychain_path"
+          
+          echo 'Provisioning Profiles:'
+          ls -al "$profile_path"
+          echo 'runner.temp:'
+          ls -al "${{ runner.temp }}"
 
       - name: Setup aliyun-cli
         uses: jerray/setup-aliyun-cli-action@v1.0.2
@@ -143,17 +133,17 @@ jobs:
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
 
-#      - name: Install Flutter
-#        uses: subosito/flutter-action@v2.16.0
-#        with:
-#          channel: 'stable'
-#          cache: true
-#
-#      - name: Install dependencies
-#        run: flutter pub get
-#
-#      - name: Pod repo update
-#        run: pod repo update
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Pod repo update
+        run: pod repo update
 
       # 准备环境
       - name : Setup Environment
@@ -166,8 +156,10 @@ jobs:
 #          echo "Hello" > build/ios/ipa/automation_build.ipa
 #          ls -R build/ios/ipa/
 
-#      - name: Build iOS ipa
-#        run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
+      - name: Build iOS ipa
+        run: |
+          export FLUTTER_XCODE_CODE_SIGN_IDENTITY="Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)"
+          flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload ipa to oss
         id: upload-ipa
