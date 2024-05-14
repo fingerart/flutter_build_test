@@ -7,9 +7,9 @@ on:
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
   # 通过FLUTTER_XCODE_前缀的环境变量传递给xcodebuild 具体查看: https://help.apple.com/xcode/mac/current/#/itcaec37c2a6
-  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-  FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: MOVA-Distribution-ADHOC
-  FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution"
+#  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
+#  FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: MOVA-Distribution-ADHOC
+#  FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution"
 
 jobs:
   build-android:
