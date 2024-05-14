@@ -7,7 +7,7 @@ on:
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
   FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-  FLUTTER_XCODE_PROVISIONING_PROFILE: 4e24586d-1862-489b-b7b8-676f35731d3b
+  FLUTTER_XCODE_PROVISIONING_PROFILE: MOVA-Distribution-ADHOC
   FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution: ORIGO ENTERTAINMENT PTE. LTD. (3QNVKN55MD)"
 
 jobs:
@@ -102,7 +102,7 @@ jobs:
           # 准备描述文件
           profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
           mkdir -p "$profile_path"
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/4e24586d-1862-489b-b7b8-676f35731d3b.mobileprovision"
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/MOVA-Distribution-ADHOC.mobileprovision"
           
           # 准备证书
           keychain_path="${{ runner.temp }}/app-signing.keychain"
