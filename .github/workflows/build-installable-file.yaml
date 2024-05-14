@@ -126,17 +126,17 @@ jobs:
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2.16.0
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Pod repo update
-        run: pod repo update
+#      - name: Install Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: 'stable'
+#          cache: true
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Pod repo update
+#        run: pod repo update
 
       # 准备环境
       - name : Setup Environment
@@ -164,7 +164,7 @@ jobs:
           flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: test
-        if: true
+        if: ${{ always() }}
         run: ls -al ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Upload ipa to oss
