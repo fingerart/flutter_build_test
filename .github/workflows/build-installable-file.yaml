@@ -101,7 +101,7 @@ jobs:
         run: |
           # 准备描述文件
           dest_profile_dir="~/Library/MobileDevice/Provisioning\ Profiles/"
-          mkdir -p "$profile_path"
+          mkdir -p "$dest_profile_dir"
           temp_profile_path="${{ runner.temp }}/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
           echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$temp_profile_path"
           cp "$temp_profile_path" "$dest_profile_dir"
