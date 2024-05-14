@@ -100,7 +100,7 @@ jobs:
       - name: Install the Apple certificate and provisioning profile
         run: |
           # 准备描述文件
-          dest_profile_dir="$HOME/Library/MobileDevice/Provisioning\ Profiles"
+          dest_profile_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$dest_profile_dir"
           temp_profile_path="${{ runner.temp }}/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
           echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$temp_profile_path"
@@ -138,17 +138,17 @@ jobs:
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
 
-#      - name: Install Flutter
-#        uses: subosito/flutter-action@v2.16.0
-#        with:
-#          channel: 'stable'
-#          cache: true
-#
-#      - name: Install dependencies
-#        run: flutter pub get
-#
-#      - name: Pod repo update
-#        run: pod repo update
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Pod repo update
+        run: pod repo update
 
       # 准备环境
       - name : Setup Environment
