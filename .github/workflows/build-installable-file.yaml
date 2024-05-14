@@ -163,6 +163,10 @@ jobs:
           
           flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
+      - name: test
+        if: true
+        run: ls -al ~/Library/MobileDevice/Provisioning\ Profiles
+
       - name: Upload ipa to oss
         id: upload-ipa
         run: |
