@@ -126,7 +126,6 @@ jobs:
 
       - name: test
         run: |
-          ls -R ~/Library/MobileDevice/
           ls -R ~
 
 #      - name: Setup aliyun-cli
