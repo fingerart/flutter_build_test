@@ -102,12 +102,12 @@ jobs:
           # 准备描述文件
           profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
           mkdir -p "$profile_path"
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
+          echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
           
           # 准备证书
           keychain_path="${{ runner.temp }}/app-signing.keychain"
           distribution_p12_path="${{ runner.temp }}/distribution.p12"
-          echo "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
+          echo -n "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
           
           # 创建keychain
           security create-keychain -p "${{ secrets.IOS_KEYCHAIN_PASSWORD }}" "$keychain_path"
