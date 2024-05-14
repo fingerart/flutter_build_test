@@ -6,23 +6,18 @@ on:
 
 env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
-  # 通过FLUTTER_XCODE_前缀的环境变量传递给xcodebuild 具体查看: https://help.apple.com/xcode/mac/current/#/itcaec37c2a6
-#  FLUTTER_XCODE_DEVELOPMENT_TEAM: 3QNVKN55MD
-#  FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: MOVA-Distribution-ADHOC
-#  FLUTTER_XCODE_CODE_SIGN_IDENTITY: "Apple Distribution"
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    if: false
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fake build
-        run: |
-          mkdir -p build/app/outputs/apk/debug/
-          echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
-          ls -R build/app/outputs
+#      - name: Fake build
+#        run: |
+#          mkdir -p build/app/outputs/apk/debug/
+#          echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
+#          ls -R build/app/outputs
 
       - name: Setup aliyun-cli
         uses: jerray/setup-aliyun-cli-action@v1.0.2
@@ -33,16 +28,16 @@ jobs:
           access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
           region: "ap-southeast-1"
 
-#      # 安装Flutter环境
-#      - name: Setup Flutter
-#        uses: subosito/flutter-action@v2.16.0
-#        with:
-#          channel: 'stable'
-#          cache: true
-#
-#      # 安装依赖
-#      - name: Install dependencies
-#        run: flutter pub get
+      # 安装Flutter环境
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: 'stable'
+          cache: true
+
+      # 安装依赖
+      - name: Install dependencies
+        run: flutter pub get
 
       # 准备环境
       - name : Setup Environment
@@ -51,13 +46,13 @@ jobs:
         shell: bash
 
       # 为不同环境作构建
-#      - name: Build apk for test environment
-#        if: ${{ github.ref_name == 'test' }}
-#        run: flutter build apk -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
-#
-#      - name: Build apk for release environment
-#        if: ${{ github.ref_name == 'release' }}
-#        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+      - name: Build apk for test environment
+        if: ${{ github.ref_name == 'test' }}
+        run: flutter build apk -t lib/main_debug.dart --debug --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
+
+      - name: Build apk for release environment
+        if: ${{ github.ref_name == 'release' }}
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/obfuscating --dart-define=RELEASE_STORE=googleplay --no-tree-shake-icons
 
       - name: Upload to oss
         id: upload-oss
@@ -65,7 +60,7 @@ jobs:
           dist_file_name="${{ steps.app.outputs.dist_file_name }}.${{ github.ref_name == 'test' && 'apk' || 'aab' }}"
           oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
           aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
-          url=$(aliyun oss sign "$oss_path" --timeout 31536000 --query-param "response-content-disposition:attachment;filename=$dist_file_name" | grep -oE 'http[s]?:\/\/[^ ]+')
+          url=$(aliyun oss sign "$oss_path" --timeout 7776000 --query-param "response-content-disposition:attachment;filename=$dist_file_name" | grep -oE 'http[s]?:\/\/[^ ]+')
           echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
 
       - name: Notify lark for success
@@ -156,6 +151,11 @@ jobs:
 #          ls -R build/ios/ipa/
 
       - name: Build iOS ipa
+        env:
+          # 通过FLUTTER_XCODE_前缀的环境变量传递给xcodebuild 具体查看: https://help.apple.com/xcode/mac/current/#/itcaec37c2a6
+          FLUTTER_XCODE_DEVELOPMENT_TEAM: ${{vars.DEVELOPMENT_TEAM}}
+          FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{vars.PROVISIONING_PROFILE_SPECIFIER}}
+          FLUTTER_XCODE_CODE_SIGN_IDENTITY: ${{vars.CODE_SIGN_IDENTITY}}
         run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload ipa to oss
