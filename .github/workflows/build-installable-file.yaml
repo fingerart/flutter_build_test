@@ -158,8 +158,8 @@ jobs:
           echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
           
           echo 'Provisioning Profiles:'
-          shasum -a 1 ~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
           ls -al "$profile_path"
+          shasum -a 1 ~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
           
           flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
