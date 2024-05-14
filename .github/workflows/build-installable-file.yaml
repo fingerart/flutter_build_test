@@ -168,10 +168,11 @@ jobs:
         id: upload-ipa
         run: |
           dist_file_name="${{ steps.app.outputs.dist_file_name }}.ipa"
-          oss_path="oss://${{ vars.OSS_BUCKET }}/${{ steps.app.outputs.dist_dir }}/$dist_file_name"
+          dist_file_path="${{ steps.app.outputs.dist_dir }}/$dist_file_name"
+          oss_path="oss://${{ vars.OSS_BUCKET }}/$dist_file_path"
           aliyun oss cp "${{ steps.app.outputs.output_file_path }}" "$oss_path" -f
-          url=$(aliyun oss sign "$oss_path" --timeout 31536000 | grep -oE 'http[s]?:\/\/[^ ]+')
-          echo "$url" | sed 's#://[^/#?]*#://${{ env.OSS_BUCKET_CNAME }}#' | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
+          aliyun oss set-acl "$oss_path" public-read
+          echo "https://${{env.OSS_BUCKET_CNAME}}/$dist_file_path" | xargs -I {} echo "download_url={}" >> "$GITHUB_OUTPUT"
 
       - name: Make install manifest file
         id: make-manifest
