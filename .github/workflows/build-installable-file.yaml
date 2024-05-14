@@ -128,8 +128,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: |
-            ~/Library/MobileDevice/Provisioning\ Profiles/
-            ${{ runner.temp }}/distribution.p12
+            /Users/runner/Library/MobileDevice/Provisioning\ Profiles/
 
 #      - name: Setup aliyun-cli
 #        uses: jerray/setup-aliyun-cli-action@v1.0.2
