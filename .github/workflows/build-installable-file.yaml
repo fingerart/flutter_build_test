@@ -121,7 +121,7 @@ jobs:
           
           echo 'Provisioning Profiles:'
           ls -al "$profile_path"
-          shasum -a 1 ~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
+          shasum -a 1 ${{ runner.temp }}/distribution.p12
           echo 'runner.temp:'
           ls -al "${{ runner.temp }}"
           echo $HOME
