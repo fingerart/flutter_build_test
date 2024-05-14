@@ -126,7 +126,8 @@ jobs:
 
       - name: test
         run: |
-          ls -R ~
+          ls -al ~
+          ls -al ~/Library
 
 #      - name: Setup aliyun-cli
 #        uses: jerray/setup-aliyun-cli-action@v1.0.2
