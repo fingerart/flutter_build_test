@@ -99,8 +99,15 @@ jobs:
 
       - name: Install the Apple certificate and provisioning profile
         run: |
+          # 准备描述文件
+          dest_profile_dir="~/Library/MobileDevice/Provisioning\ Profiles/"
+          mkdir -p "$profile_path"
+          temp_profile_path="${{ runner.temp }}/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
+          echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$temp_profile_path"
+          cp "$temp_profile_path" "$dest_profile_dir"
+          
           # 准备证书
-          keychain_path="${{ runner.temp }}/app-signing.keychain"
+          keychain_path="${{ runner.temp }}/signing.keychain"
           distribution_p12_path="${{ runner.temp }}/distribution.p12"
           echo -n "${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}" | base64 --decode --output "$distribution_p12_path"
           
@@ -113,6 +120,11 @@ jobs:
           # 导入证书
           security import "$distribution_p12_path" -A -t cert -f pkcs12 -k "$keychain_path" -P "${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}"
           security list-keychains -d user -s "$keychain_path"
+          
+          echo "ls -al $dest_profile_dir: "
+          ls -al "$dest_profile_dir"
+          
+          shasum -a 1 ~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
           
           echo 'runner.temp:'
           ls -al "${{ runner.temp }}"
@@ -150,18 +162,7 @@ jobs:
 #          ls -R build/ios/ipa/
 
       - name: Build iOS ipa
-        run: |
-          
-          # 准备描述文件
-          profile_path="~/Library/MobileDevice/Provisioning\ Profiles"
-          mkdir -p "$profile_path"
-          echo -n "${{ secrets.IOS_PROVISIONING_PROFILE_ADHOC_BASE64 }}" | base64 --decode --output "$profile_path/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision"
-          
-          echo 'Provisioning Profiles:'
-          ls -al "$profile_path"
-          shasum -a 1 ~/Library/MobileDevice/Provisioning\ Profiles/16a47457-dd2a-43c4-ad24-f37d95a82e77.mobileprovision
-          
-          flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: test
         if: ${{ always() }}
