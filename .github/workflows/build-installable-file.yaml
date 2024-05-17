@@ -1,5 +1,28 @@
 name: Build installation files for Android and iOS
 
+####################################################################################################
+# vars:
+#   - OSS_BUCKET                                     # OSS存储桶
+#   - PRODUCT_IMG_KEY                                # 产品的LOGO（飞书图片key）
+#   - IOS_DEVELOPMENT_TEAM                           # iOS开发团队ID
+#   - IOS_PROVISIONING_PROFILE_SPECIFIER_ADHOC       # iOS描述配置文件名或UUID
+#   - IOS_CODE_SIGN_IDENTITY                         # iOS代码签名证书（证书名称或证书类型），如Apple Distribution
+
+# env:
+#   - REPOSITORY_ALIAS                               # 仓库别名（如 Spellai）
+
+# secrets:
+#   - OSS_ACCESS_KEY_ID                              # OSS Access Key ID
+#   - OSS_ACCESS_KEY_SECRET                          # OSS Access Key Secret
+#   - LARK_CHATROOM_ID                               # 飞书群聊通知机器人ID
+#   - LARK_APP_ID                                    # 飞书应用ID
+#   - LARK_APP_SECRET                                # 飞书应用密钥
+#   - IOS_DISTRIBUTION_P12_BASE64                    # iOS打包证书（.p12文件base64编码）
+#   - IOS_DISTRIBUTION_P12_PASSWORD                  # iOS打包证书密码
+#   - IOS_PROVISIONING_PROFILE_ADHOC_BASE64          # iOS AdHoc描述配置文件（base64编码）
+#   - IOS_KEYCHAIN_PASSWORD                          # 构建机器上的Keychain密码
+####################################################################################################
+
 on:
   push:
     branches: [ test, release ]
@@ -8,16 +31,21 @@ env:
   OSS_BUCKET_CNAME: artifact-release.riveroll.top
 
 jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - run: ruby --version
   build-android:
     runs-on: ubuntu-latest
+    if: fasle
     steps:
       - uses: actions/checkout@v4
 
-#      - name: Fake build
-#        run: |
-#          mkdir -p build/app/outputs/apk/debug/
-#          echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
-#          ls -R build/app/outputs
+      #      - name: Fake build
+      #        run: |
+      #          mkdir -p build/app/outputs/apk/debug/
+      #          echo "Hello" > build/app/outputs/apk/debug/app-debug.apk
+      #          ls -R build/app/outputs
 
       - name: Setup aliyun-cli
         uses: jerray/setup-aliyun-cli-action@v1.0.2
@@ -89,7 +117,8 @@ jobs:
 
   build-ios:
     runs-on: macos-latest
-    if: ${{ github.ref_name == 'test' }}
+#    if: ${{ github.ref_name == 'test' }}
+    if: false
     steps:
       - uses: actions/checkout@v4
 
@@ -144,18 +173,18 @@ jobs:
         id: app
         run: .github/scripts/setup-runtime-environment.sh
 
-#      - name: Fake build
-#        run: |
-#          mkdir -p build/ios/ipa/
-#          echo "Hello" > build/ios/ipa/automation_build.ipa
-#          ls -R build/ios/ipa/
+      #      - name: Fake build
+      #        run: |
+      #          mkdir -p build/ios/ipa/
+      #          echo "Hello" > build/ios/ipa/automation_build.ipa
+      #          ls -R build/ios/ipa/
 
       - name: Build iOS ipa
         env:
           # 通过FLUTTER_XCODE_前缀的环境变量传递给xcodebuild 具体查看: https://help.apple.com/xcode/mac/current/#/itcaec37c2a6
-          FLUTTER_XCODE_DEVELOPMENT_TEAM: ${{vars.DEVELOPMENT_TEAM}}
-          FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{vars.PROVISIONING_PROFILE_SPECIFIER}}
-          FLUTTER_XCODE_CODE_SIGN_IDENTITY: ${{vars.CODE_SIGN_IDENTITY}}
+          FLUTTER_XCODE_DEVELOPMENT_TEAM: ${{vars.IOS_DEVELOPMENT_TEAM}}
+          FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER: ${{vars.IOS_PROVISIONING_PROFILE_SPECIFIER_ADHOC}}
+          FLUTTER_XCODE_CODE_SIGN_IDENTITY: ${{vars.IOS_CODE_SIGN_IDENTITY}}
         run: flutter build ipa -t lib/main_debug.dart -v --profile --no-tree-shake-icons --obfuscate --split-debug-info=build/obfuscating --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload ipa to oss
