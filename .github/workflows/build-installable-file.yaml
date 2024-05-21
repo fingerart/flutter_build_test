@@ -34,7 +34,10 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
-      - run: security list-keychains
+      - run: |
+          security list-keychains
+          ls -al ~/.ssh
+          cat ~/.ssh/known_hosts
   build-android:
     runs-on: ubuntu-latest
     if: false
