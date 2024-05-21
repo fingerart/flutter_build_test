@@ -34,7 +34,7 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
-      - run: ruby --version
+      - run: security list-keychains
   build-android:
     runs-on: ubuntu-latest
     if: false
