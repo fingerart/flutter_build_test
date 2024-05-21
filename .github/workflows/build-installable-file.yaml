@@ -36,8 +36,7 @@ jobs:
     steps:
       - run: |
           security list-keychains
-          ls -al ~/.ssh
-          cat ~/.ssh/known_hosts
+          security show-keychain-info ~/Library/Keychains/login.keychain-db
   build-android:
     runs-on: ubuntu-latest
     if: false
